@@ -25,7 +25,6 @@ import torch
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.accelerators.horovod_accelerator import HorovodAccelerator
-from pytorch_lightning.core.step_result import EvalResult, Result, TrainResult
 from pytorch_lightning.metrics.classification.accuracy import Accuracy
 from pytorch_lightning.utilities import _module_available, APEX_AVAILABLE, HOROVOD_AVAILABLE, NATIVE_AMP_AVAILABLE
 from tests.base import EvalModelTemplate
