@@ -389,24 +389,7 @@ class TrainLoop:
             return None, None
 
         # -----------------------------------------
-        # process result return (DEPRECATE in 1.0)
-        # -----------------------------------------
-        if isinstance(training_step_output, Result):
-            training_step_output_for_epoch_end = self._process_result(training_step_output, split_batch)
-            return training_step_output_for_epoch_end, training_step_output
-
-        # -----------------------------------------
-        # process hybrid (1.0)
-        # -----------------------------------------
-        # no need for these checks in 1.0.0
-        # TODO: remove checks in 1.0.0
-        is_tensor = isinstance(training_step_output_for_epoch_end, torch.Tensor)
-        is_1_0_output = is_tensor or ("log" not in training_step_output and "progress_bar" not in training_step_output)
-        if is_1_0_output:
-            return self._process_training_step_output_1_0(training_step_output, split_batch)
-
-        # -----------------------------------------
-        # process old dict (deprecate 1.0)
+        # process old dict
         # -----------------------------------------
         training_step_output = self.trainer.process_dict_result(training_step_output, train=True)
 
@@ -425,65 +408,7 @@ class TrainLoop:
 
         return training_step_output_for_epoch_end, training_step_output
 
-    def _process_training_step_output_1_0(self, training_step_output, split_batch):
-        result = self.trainer.get_model()._results
-
-        loss = None
-        hiddens = None
-
-        # handle dict return
-        if isinstance(training_step_output, dict):
-            loss = training_step_output.pop("loss", None)
-            hiddens = training_step_output.pop("hiddens", None)
-            result["extra"] = training_step_output
-
-        # handle scalar return
-        elif isinstance(training_step_output, torch.Tensor):
-            loss = training_step_output
-            result["extra"] = {}
-
-        # map to results under the hood
-        result.minimize = loss
-        result.hiddens = hiddens
-
-        # track batch for manual reduction with result
-        result.track_batch_size(len(split_batch))
-
-        # track metrics without grads for epoch reduction
-        training_step_output_for_epoch_end = copy(result)
-        training_step_output_for_epoch_end.detach()
-        if self.trainer.move_metrics_to_cpu:
-            training_step_output_for_epoch_end.cpu()
-
-        # what flows back into the system
-        training_step_output = result
-
-        return training_step_output_for_epoch_end, training_step_output
-
-    def _process_result(self, training_step_output, split_batch):
-        training_step_output.track_batch_size(len(split_batch))
-        m = """
-        TrainResult and EvalResult were deprecated in 0.9.1 and support will drop in 1.0.0.
-        Use self.log and .write from the LightningModule to log metrics and write predictions.
-        training_step can now only return a scalar (for the loss) or a dictionary with anything you want.
-
-        Option 1:
-        return loss
-
-        Option 2:
-        return {'loss': loss, 'anything_else': ...}
-
-        Option 3:
-        return {'loss': loss, 'hiddens': hiddens, 'anything_else': ...}
-            """
-        rank_zero_warn(m)
-
-        training_step_output_for_epoch_end = copy(training_step_output)
-        training_step_output_for_epoch_end.detach()
-
-        return training_step_output_for_epoch_end
-
-    def optimizer_step(self, optimizer, opt_idx, batch_idx, train_step_and_backward_closure):
+    def optimizer_step(self, optimizer, opt_idx, batch_idx, train_step_and_backward_closure, *args, **kwargs):
         model_ref = self.trainer.get_model()
 
         is_lbfgs = isinstance(optimizer, torch.optim.LBFGS)
