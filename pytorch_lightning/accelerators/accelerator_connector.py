@@ -21,7 +21,7 @@ from pytorch_lightning.accelerators.accelerator import NewCPUAccelerator, NewAcc
 from pytorch_lightning.accelerators.data_parallel import SingleDevicePlugin, DDPPlugin, DDPSpawnPlugin, \
     DataParallelPlugin
 from pytorch_lightning.accelerators.precision import ApexMixedPrecisionPlugin, NativeMixedPrecisionPlugin, PrecisionPlugin
-from pytorch_lightning.utilities import AMPType, APEX_AVAILABLE, NATIVE_AMP_AVALAIBLE, device_parser
+from pytorch_lightning.utilities import AMPType, APEX_AVAILABLE, NATIVE_AMP_AVAILABLE, device_parser
 from pytorch_lightning.utilities import rank_zero_only
 from pytorch_lightning.utilities.distributed import rank_zero_warn, rank_zero_info
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
@@ -164,7 +164,7 @@ class BackendConnector(object):
 
         elif self.precision == 16:
             if self.amp_type == 'native':
-                if not NATIVE_AMP_AVALAIBLE:
+                if not NATIVE_AMP_AVAILABLE:
                     rank_zero_warn('You have asked for native AMP but your PyTorch version does not support it.'
                                 ' Consider upgrading with `pip install torch>=1.6`.'
                                 ' We will attempt to use NVIDIA Apex for this session.')
