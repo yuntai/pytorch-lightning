@@ -4,7 +4,7 @@ import sys
 import torch
 import torch.nn as nn
 
-from pytorch_lightning.utilities import AllGatherGrad
+from pytorch_lightning.utilities import AllGatherGrad, TPU_AVAILABLE
 
 
 def setup_ddp(rank, world_size):
@@ -39,6 +39,7 @@ def _test_all_gather_ddp(rank, world_size):
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="DDP not available on windows")
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_all_gather_ddp():
     world_size = 3
     torch.multiprocessing.spawn(_test_all_gather_ddp, args=(world_size,), nprocs=world_size)

@@ -8,7 +8,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.plugins.ddp_plugin import DDPPlugin
 from pytorch_lightning.plugins.sharded_plugin import DDPShardedPlugin
-from pytorch_lightning.utilities import FAIRSCALE_AVAILABLE
+from pytorch_lightning.utilities import FAIRSCALE_AVAILABLE, TPU_AVAILABLE
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from tests.base.boring_model import BoringModel
 
@@ -29,6 +29,7 @@ from tests.base.boring_model import BoringModel
     ["ddp_backend", "gpus", "num_processes"],
     [("ddp_cpu", None, None), ("ddp", 2, 0), ("ddp2", 2, 0), ("ddp_spawn", 2, 0)],
 )
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_ddp_choice_default_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -64,6 +65,7 @@ def test_ddp_choice_default_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
     ["ddp_backend", "gpus", "num_processes"],
     [("ddp_cpu", None, None), ("ddp", 2, 0), ("ddp2", 2, 0), ("ddp_spawn", 2, 0)],
 )
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_ddp_choice_custom_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
     class MyDDP(DDPPlugin):
         pass
@@ -105,6 +107,7 @@ def test_ddp_choice_custom_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
 )
 @pytest.mark.skipif(platform.system() == "Windows", reason="Distributed sharded plugin is not supported on Windows")
 @pytest.mark.skipif(not FAIRSCALE_AVAILABLE, reason="Fairscale is not available")
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_ddp_choice_string_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):

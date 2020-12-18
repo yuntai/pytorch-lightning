@@ -21,6 +21,7 @@ from pytorch_lightning import Trainer, accelerators
 from pytorch_lightning.accelerators import Accelerator
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.cluster_environments import ClusterEnvironment, SLURMEnvironment, TorchElasticEnvironment
+from pytorch_lightning.utilities import TPU_AVAILABLE
 from tests.base.boring_model import BoringModel
 
 
@@ -38,6 +39,7 @@ def test_accelerator_choice_cpu(tmpdir):
     trainer.fit(model)
 
 
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp_cpu(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -59,6 +61,7 @@ def test_accelerator_choice_ddp_cpu(tmpdir):
 
 @mock.patch.dict(os.environ, {"CUDA_VISIBLE_DEVICES": "0,1"})
 @mock.patch('torch.cuda.device_count', return_value=2)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -81,6 +84,7 @@ def test_accelerator_choice_ddp(tmpdir):
 
 @mock.patch.dict(os.environ, {"CUDA_VISIBLE_DEVICES": "0,1"})
 @mock.patch('torch.cuda.device_count', return_value=2)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp_spawn(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -109,6 +113,7 @@ def test_accelerator_choice_ddp_spawn(tmpdir):
     "SLURM_LOCALID": "10"
 })
 @mock.patch('torch.cuda.device_count', return_value=2)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp_slurm(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -140,6 +145,7 @@ def test_accelerator_choice_ddp_slurm(tmpdir):
     "SLURM_LOCALID": "10"
 })
 @mock.patch('torch.cuda.device_count', return_value=2)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp2_slurm(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -170,7 +176,8 @@ def test_accelerator_choice_ddp2_slurm(tmpdir):
     "NODE_RANK": "0"
 })
 @mock.patch('torch.cuda.device_count', return_value=2)
-def test_accelerator_choice_ddp_te(tmpdir):
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
+def test_accelerator_choice_ddp_torchelastic(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
             assert trainer.use_ddp
@@ -199,7 +206,8 @@ def test_accelerator_choice_ddp_te(tmpdir):
     "NODE_RANK": "0"
 })
 @mock.patch('torch.cuda.device_count', return_value=2)
-def test_accelerator_choice_ddp2_te(tmpdir):
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
+def test_accelerator_choice_ddp2_torchelastic(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
             assert trainer.use_ddp2
@@ -227,7 +235,8 @@ def test_accelerator_choice_ddp2_te(tmpdir):
     "NODE_RANK": "0"
 })
 @mock.patch('torch.cuda.device_count', return_value=0)
-def test_accelerator_choice_ddp_cpu_te(tmpdir):
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
+def test_accelerator_choice_ddp_cpu_torchelastic(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
             assert trainer.use_ddp
@@ -258,6 +267,7 @@ def test_accelerator_choice_ddp_cpu_te(tmpdir):
     "SLURM_LOCALID": "0"
 })
 @mock.patch('torch.cuda.device_count', return_value=0)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp_cpu_slurm(tmpdir):
     class CB(Callback):
         def on_fit_start(self, trainer, pl_module):
@@ -286,6 +296,7 @@ def test_accelerator_choice_ddp_cpu_slurm(tmpdir):
     "SLURM_LOCALID": "0"
 })
 @mock.patch('torch.cuda.device_count', return_value=0)
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_accelerator_choice_ddp_cpu_custom_cluster(tmpdir):
     """
     Test that we choose the custom cluster even when SLURM or TE flags are around

@@ -7,7 +7,7 @@ import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.plugins.native_amp import NativeAMPPlugin
-from pytorch_lightning.utilities import NATIVE_AMP_AVAILABLE
+from pytorch_lightning.utilities import NATIVE_AMP_AVAILABLE, TPU_AVAILABLE
 from tests.base.boring_model import BoringModel
 
 
@@ -23,6 +23,7 @@ from tests.base.boring_model import BoringModel
 @mock.patch('torch.cuda.device_count', return_value=2)
 @pytest.mark.parametrize(['ddp_backend', 'gpus', 'num_processes'],
                          [('ddp_cpu', None, None), ('ddp', 2, 0), ('ddp2', 2, 0), ('ddp_spawn', 2, 0)])
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_amp_choice_default_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
 
     class CB(Callback):
@@ -57,6 +58,7 @@ def test_amp_choice_default_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
 @mock.patch('torch.cuda.device_count', return_value=2)
 @pytest.mark.parametrize(['ddp_backend', 'gpus', 'num_processes'],
                          [('ddp_cpu', None, None), ('ddp', 2, 0), ('ddp2', 2, 0), ('ddp_spawn', 2, 0)])
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_amp_choice_custom_ddp_cpu(tmpdir, ddp_backend, gpus, num_processes):
     class MyNativeAMP(NativeAMPPlugin):
         pass

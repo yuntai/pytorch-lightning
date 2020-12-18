@@ -20,6 +20,7 @@ import torch.multiprocessing as mp
 from pytorch_lightning.core.step_result import Result
 from pytorch_lightning.metrics import Metric
 import tests.base.develop_utils as tutils
+from pytorch_lightning.utilities import TPU_AVAILABLE
 
 
 class DummyMetric(Metric):
@@ -92,6 +93,7 @@ def _ddp_test_fn(rank, worldsize):
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="DDP not available on windows")
+@pytest.mark.skipif(TPU_AVAILABLE, reason='This case is not supported on TPUs')
 def test_result_reduce_ddp():
     """Make sure result logging works with DDP"""
     tutils.reset_seed()
