@@ -20,8 +20,6 @@ from abc import abstractmethod
 from argparse import ArgumentParser, Namespace
 from typing import Any, List, Optional, Tuple, Union
 
-from torch.utils.data import DataLoader
-
 from pytorch_lightning.core.hooks import CheckpointHooks, DataHooks
 from pytorch_lightning.utilities import parsing, rank_zero_only
 
