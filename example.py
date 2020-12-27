@@ -20,17 +20,17 @@ class Model(LightningModule):
     def training_step(self, batch, batch_idx):
         print("running train step")
         out = self(batch)
-        return dict({"loss": out.sum()})
+        return dict({"loss": out.sum().unsqueeze(0)})
 
     def test_step(self, batch, batch_idx):
         print("running test step")
         out = self(batch)
-        return dict({"loss": out.sum()})
+        return dict({"loss": out.sum().unsqueeze(0)})
 
     def validation_step(self, batch, batch_idx):
         print("running val step")
         out = self(batch)
-        return dict({"loss": out.sum()})
+        return dict({"loss": out.sum().unsqueeze(0)})
 
 
 if __name__ == "__main__":
