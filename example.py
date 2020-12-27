@@ -27,6 +27,6 @@ if __name__ == "__main__":
     dp_model = DataParallel(p_model, device_ids=[0, 1])
 
     batch = torch.rand(5, 10, device=torch.device("cuda", 0))
-    loss = dp_model(batch)
+    loss = dp_model(batch, 0)
     print(loss)
 
