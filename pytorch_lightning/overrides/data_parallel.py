@@ -67,10 +67,10 @@ class LightningParallelModule(torch.nn.Module):
 
     def forward(self, *inputs, **kwargs):
         if self.module.training:
-            return self.module.training_step(*inputs[0], **kwargs[0])
+            return self.module.training_step(*inputs, **kwargs)
         if self.module.testing:
-            return self.module.test_step(*inputs[0], **kwargs[0])
-        return self.module.validation_step(*inputs[0], **kwargs[0])
+            return self.module.test_step(*inputs, **kwargs)
+        return self.module.validation_step(*inputs, **kwargs)
 
 #
 # class LightningDataParallel(DataParallel):
