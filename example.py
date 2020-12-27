@@ -20,17 +20,17 @@ class Model(LightningModule):
     def training_step(self, batch, batch_idx):
         print("running train step")
         out = self(batch)
-        return OrderedDict({"loss": out.sum()})
+        return dict({"loss": out.sum()})
 
     def test_step(self, batch, batch_idx):
         print("running test step")
         out = self(batch)
-        return OrderedDict({"loss": out.sum()})
+        return dict({"loss": out.sum()})
 
     def validation_step(self, batch, batch_idx):
         print("running val step")
         out = self(batch)
-        return OrderedDict({"loss": out.sum()})
+        return dict({"loss": out.sum()})
 
 
 if __name__ == "__main__":
