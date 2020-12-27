@@ -76,7 +76,8 @@ class LightningParallelModule(torch.nn.Module):
         else:
             output = self.module.validation_step(*inputs, **kwargs)
             warn_if_output_is_none(output, "validation_step")
-        output = auto_squeeze_dim_zeros(output)
+        if output is not None:
+            output = auto_squeeze_dim_zeros(output)
         return output
 
 #
