@@ -21,6 +21,18 @@ class Model(LightningModule):
         loss = out.sum()
         return loss
 
+    def test_step(self, batch, batch_idx):
+        print("running test step")
+        out = self(batch)
+        loss = out.sum()
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        print("running val step")
+        out = self(batch)
+        loss = out.sum()
+        return loss
+
 
 if __name__ == "__main__":
     model = Model()
