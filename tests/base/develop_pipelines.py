@@ -100,6 +100,7 @@ def run_prediction(dataloader, trained_model, dp=False, min_acc=0.50):
     x = x.view(x.size(0), -1)
 
     if dp:
+        assert trained_model.module.module.testing
         with torch.no_grad():
             output = trained_model(batch, 0)
         acc = output['val_acc']
