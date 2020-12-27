@@ -22,6 +22,7 @@ class Model(LightningModule):
 
 if __name__ == "__main__":
     model = Model()
+    model.testing = True
     p_model = LightningParallelModule(model)
     p_model.to(torch.device("cuda", 0))
     dp_model = DataParallel(p_model, device_ids=[0, 1])
