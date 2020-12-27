@@ -367,3 +367,5 @@ def auto_squeeze_dim_zeros(output):
         is_scalar = v.dim() == 0
         if is_scalar:
             output[k] = output[k].unsqueeze(0)
+
+    return output
