@@ -23,6 +23,7 @@ from torch.nn import DataParallel
 from torch.nn.parallel import DistributedDataParallel
 from torch.nn.parallel._functions import Gather
 
+from pytorch_lightning import LightningModule
 from pytorch_lightning.core.step_result import Result
 from pytorch_lightning.utilities.warning_utils import WarningCache
 
@@ -58,97 +59,111 @@ def get_a_var(obj):  # pragma: no-cover
 warning_cache = WarningCache()
 
 
-class LightningDataParallel(DataParallel):
-    """
-    Override the forward call in lightning so it goes to training and validation step respectively
-    """
+class LightningParallelModule(torch.nn.Module):
+
+    def __init__(self, lightning_module: LightningModule):
+        super().__init__()
+        self.module = lightning_module
 
     def forward(self, *inputs, **kwargs):
-        if not self.device_ids:
-            return self.module(*inputs, **kwargs)
+        if self.module.training:
+            return self.module.training_step(*inputs[0], **kwargs[0])
+        if self.module.testing:
+            return self.module.test_step(*inputs[0], **kwargs[0])
+        return self.module.validation_step(*inputs[0], **kwargs[0])
 
-        for t in chain(self.module.parameters(), self.module.buffers()):
-            if t.device != self.src_device_obj:
-                raise RuntimeError("module must have its parameters and buffers "
-                                   "on device {} (device_ids[0]) but found one of "
-                                   "them on device: {}".format(self.src_device_obj, t.device))
-
-        inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
-        if len(self.device_ids) == 1:
-            # lightning
-            if self.module.training:
-                return self.module.training_step(*inputs[0], **kwargs[0])
-            if self.module.testing:
-                return self.module.test_step(*inputs[0], **kwargs[0])
-
-            return self.module.validation_step(*inputs[0], **kwargs[0])
-
-        replicas = self.replicate(self.module, self.device_ids[:len(inputs)])
-        outputs = self.parallel_apply(replicas, inputs, kwargs)
-
-        if isinstance(outputs[0], Result):
-            outputs = self.__gather_structured_result(outputs)
-        else:
-            outputs = self.gather(outputs)
-        return outputs
-
-    def __gather_structured_result(self, outputs):
-        prototype_output = outputs[0]
-        original_class = prototype_output.__class__
-        outputs = [dict(x) for x in outputs]
-
-        # remove all the meta info
-        meta = outputs[0]['meta']
-        for i, output in enumerate(outputs):
-            del output['meta']
-
-        outputs = self.gather(outputs)
-
-        # pass minimize to constructor for TrainResult
-        if 'minimize' in outputs:
-            result = original_class(outputs['minimize'])
-        else:
-            result = original_class()
-
-        result.update(outputs)
-        result['meta'] = meta
-        return result
-
-    def gather(self, outputs):
-        r"""
-        Override the gather method to support python scalars as well.
-        """
-        def gather_map(outputs):
-            elem = outputs[0]
-            elem_type = type(elem)
-
-            if isinstance(elem, torch.Tensor):
-                return Gather.apply(self.output_device, self.dim, *outputs)
-
-            if elem is None:
-                return None
-
-            if isinstance(elem, Mapping):
-                if not all((len(elem) == len(d) for d in outputs)):
-                    raise ValueError('All dicts must have the same number of keys')
-                return elem_type(((k, gather_map([d[k] for d in outputs]))
-                                  for k in elem))
-
-            if isinstance(elem, Iterable) and not isinstance(elem, str):
-                return elem_type(map(gather_map, zip(*outputs)))
-
-            return outputs
-
-        # Recursive function calls like this create reference cycles.
-        # Setting the function to None clears the refcycle.
-        try:
-            res = gather_map(outputs)
-        finally:
-            gather_map = None
-        return res
-
-    def parallel_apply(self, replicas, inputs, kwargs):
-        return parallel_apply(replicas, inputs, kwargs, self.device_ids[:len(replicas)])
+#
+# class LightningDataParallel(DataParallel):
+#     """
+#     Override the forward call in lightning so it goes to training and validation step respectively
+#     """
+#
+#     def forward(self, *inputs, **kwargs):
+#         if not self.device_ids:
+#             return self.module(*inputs, **kwargs)
+#
+#         for t in chain(self.module.parameters(), self.module.buffers()):
+#             if t.device != self.src_device_obj:
+#                 raise RuntimeError("module must have its parameters and buffers "
+#                                    "on device {} (device_ids[0]) but found one of "
+#                                    "them on device: {}".format(self.src_device_obj, t.device))
+#
+#         inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)
+#         if len(self.device_ids) == 1:
+#             # lightning
+#             if self.module.training:
+#                 return self.module.training_step(*inputs[0], **kwargs[0])
+#             if self.module.testing:
+#                 return self.module.test_step(*inputs[0], **kwargs[0])
+#
+#             return self.module.validation_step(*inputs[0], **kwargs[0])
+#
+#         replicas = self.replicate(self.module, self.device_ids[:len(inputs)])
+#         outputs = self.parallel_apply(replicas, inputs, kwargs)
+#
+#         if isinstance(outputs[0], Result):
+#             outputs = self.__gather_structured_result(outputs)
+#         else:
+#             outputs = self.gather(outputs)
+#         return outputs
+#
+#     def __gather_structured_result(self, outputs):
+#         prototype_output = outputs[0]
+#         original_class = prototype_output.__class__
+#         outputs = [dict(x) for x in outputs]
+#
+#         # remove all the meta info
+#         meta = outputs[0]['meta']
+#         for i, output in enumerate(outputs):
+#             del output['meta']
+#
+#         outputs = self.gather(outputs)
+#
+#         # pass minimize to constructor for TrainResult
+#         if 'minimize' in outputs:
+#             result = original_class(outputs['minimize'])
+#         else:
+#             result = original_class()
+#
+#         result.update(outputs)
+#         result['meta'] = meta
+#         return result
+#
+#     def gather(self, outputs):
+#         r"""
+#         Override the gather method to support python scalars as well.
+#         """
+#         def gather_map(outputs):
+#             elem = outputs[0]
+#             elem_type = type(elem)
+#
+#             if isinstance(elem, torch.Tensor):
+#                 return Gather.apply(self.output_device, self.dim, *outputs)
+#
+#             if elem is None:
+#                 return None
+#
+#             if isinstance(elem, Mapping):
+#                 if not all((len(elem) == len(d) for d in outputs)):
+#                     raise ValueError('All dicts must have the same number of keys')
+#                 return elem_type(((k, gather_map([d[k] for d in outputs]))
+#                                   for k in elem))
+#
+#             if isinstance(elem, Iterable) and not isinstance(elem, str):
+#                 return elem_type(map(gather_map, zip(*outputs)))
+#
+#             return outputs
+#
+#         # Recursive function calls like this create reference cycles.
+#         # Setting the function to None clears the refcycle.
+#         try:
+#             res = gather_map(outputs)
+#         finally:
+#             gather_map = None
+#         return res
+#
+#     def parallel_apply(self, replicas, inputs, kwargs):
+#         return parallel_apply(replicas, inputs, kwargs, self.device_ids[:len(replicas)])
 
 
 class LightningDistributedDataParallel(DistributedDataParallel):
