@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.nn import DataParallel
 
@@ -14,7 +15,17 @@ class Model(LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    def training_step(self, batch, batch_idx):
+        out = self(batch)
+        loss = out.sum()
+        return loss
 
-model = Model()
-p_model = LightningParallelModule(model)
-dp_model = DataParallel(p_model, device_ids=[0, 1])
+if __name__ == "__main__":
+    model = Model()
+    p_model = LightningParallelModule(model)
+    dp_model = DataParallel(p_model, device_ids=[0, 1])
+
+    batch = torch.rand(5, 10)
+    loss = dp_model(batch)
+    print(loss)
+
