@@ -36,12 +36,25 @@ class Model(LightningModule):
 
 if __name__ == "__main__":
     model = Model()
-    model.training = False
-    model.testing = True
+
     p_model = LightningParallelModule(model)
     p_model.to(torch.device("cuda", 0))
     dp_model = DataParallel(p_model, device_ids=[0, 1])
 
+    model.training = True
+    model.testing = False
+    batch = torch.rand(5, 10, device=torch.device("cuda", 0))
+    loss = dp_model(batch, 0)
+    print(loss)
+
+    model.training = False
+    model.testing = True
+    batch = torch.rand(5, 10, device=torch.device("cuda", 0))
+    loss = dp_model(batch, 0)
+    print(loss)
+
+    model.training = False
+    model.testing = False
     batch = torch.rand(5, 10, device=torch.device("cuda", 0))
     loss = dp_model(batch, 0)
     print(loss)
