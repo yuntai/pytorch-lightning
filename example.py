@@ -24,6 +24,7 @@ class Model(LightningModule):
 
 if __name__ == "__main__":
     model = Model()
+    model.training = False
     model.testing = True
     p_model = LightningParallelModule(model)
     p_model.to(torch.device("cuda", 0))
