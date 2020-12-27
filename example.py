@@ -16,9 +16,11 @@ class Model(LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
+        print("running train step")
         out = self(batch)
         loss = out.sum()
         return loss
+
 
 if __name__ == "__main__":
     model = Model()
