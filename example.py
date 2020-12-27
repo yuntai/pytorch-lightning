@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 from torch.nn import DataParallel
@@ -18,20 +20,17 @@ class Model(LightningModule):
     def training_step(self, batch, batch_idx):
         print("running train step")
         out = self(batch)
-        loss = out.sum()
-        return loss
+        return OrderedDict({"loss": out.sum()})
 
     def test_step(self, batch, batch_idx):
         print("running test step")
         out = self(batch)
-        loss = out.sum()
-        return loss
+        return OrderedDict({"loss": out.sum()})
 
     def validation_step(self, batch, batch_idx):
         print("running val step")
         out = self(batch)
-        loss = out.sum()
-        return loss
+        return OrderedDict({"loss": out.sum()})
 
 
 if __name__ == "__main__":
