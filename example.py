@@ -20,8 +20,8 @@ class Model(LightningModule):
     def training_step(self, batch, batch_idx):
         print("running train step")
         out = self(batch)
-        return {"val_acc": [1]}
-        # return out.sum().unsqueeze(0)
+        # return {"val_acc": [1]}
+        return out.sum()
 
     def test_step(self, batch, batch_idx):
         print("running test step")
