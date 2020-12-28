@@ -17,6 +17,7 @@ from pprint import pprint
 
 import torch
 from torch.nn import functional as F
+from torch.utils.data import DistributedSampler, TensorDataset
 
 import pytorch_lightning as pl
 from pl_examples import cli_lightning_logo
@@ -37,6 +38,12 @@ class LitClassifier(pl.LightningModule):
 
         self.l1 = torch.nn.Linear(28 * 28, self.hparams.hidden_dim)
         self.l2 = torch.nn.Linear(self.hparams.hidden_dim, 10)
+
+    def setup(self, *args, **kwargs):
+        DistributedSampler(TensorDataset(torch.rand(100, 100)))
+
+    def train_dataloader(self):
+        DistributedSampler(TensorDataset(torch.rand(100, 100)))
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
