@@ -48,8 +48,9 @@ if __name__ == "__main__":
     batch = torch.rand(5, 10, device=torch.device("cuda", 0))
 
     loss1 = dp_model(batch, 0)
-    loss2 = ldp_model(batch, 0)
     print(loss1)
+    loss2 = ldp_model(batch, 0)
+    print(loss2)
 
 
     # model.training = False
