@@ -142,6 +142,7 @@ class LightningDataParallel(DataParallel):
         Override the gather method to support python scalars as well.
         """
         def gather_map(outputs):
+            print("outputs:", outputs)
             elem = outputs[0]
             elem_type = type(elem)
 
