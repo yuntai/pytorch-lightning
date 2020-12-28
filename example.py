@@ -20,17 +20,17 @@ class Model(LightningModule):
     def training_step(self, batch, batch_idx):
         print("running train step")
         out = self(batch)
-        return [1]
+        return {"val_acc": 1}
 
     def test_step(self, batch, batch_idx):
         print("running test step")
         out = self(batch)
-        return [2]
+        return {"val_acc": 1}
 
     def validation_step(self, batch, batch_idx):
         print("running val step")
         out = self(batch)
-        return [3]
+        return {"val_acc": 1}
 
 
 if __name__ == "__main__":
