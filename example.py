@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.nn import DataParallel
 
 from pytorch_lightning import LightningModule
-from pytorch_lightning.overrides.data_parallel import LightningParallelModule
+from pytorch_lightning.overrides.data_parallel import LightningParallelModule, LightningDataParallel
 
 
 class Model(LightningModule):
@@ -39,22 +39,27 @@ if __name__ == "__main__":
     p_model = LightningParallelModule(model)
     p_model.to(torch.device("cuda", 0))
     dp_model = DataParallel(p_model, device_ids=[0, 1])
+    ldp_model = LightningDataParallel(model, device_ids=[0, 1])
 
     model.training = True
     model.testing = False
-    batch = torch.rand(5, 10, device=torch.device("cuda", 0))
-    loss = dp_model(batch, 0)
-    print(loss)
 
-    model.training = False
-    model.testing = True
     batch = torch.rand(5, 10, device=torch.device("cuda", 0))
-    loss = dp_model(batch, 0)
-    print(loss)
 
-    model.training = False
-    model.testing = False
-    batch = torch.rand(5, 10, device=torch.device("cuda", 0))
-    loss = dp_model(batch, 0)
-    print(loss)
+    loss1 = dp_model(batch, 0)
+    loss2 = ldp_model(batch, 0)
+    print(loss1)
+
+
+    # model.training = False
+    # model.testing = True
+    # batch = torch.rand(5, 10, device=torch.device("cuda", 0))
+    # loss = dp_model(batch, 0)
+    # print(loss)
+    #
+    # model.training = False
+    # model.testing = False
+    # batch = torch.rand(5, 10, device=torch.device("cuda", 0))
+    # loss = dp_model(batch, 0)
+    # print(loss)
 
