@@ -388,23 +388,37 @@ class TrainLoop:
         if training_step_output_for_epoch_end is None:
             return None, None
 
-        # -----------------------------------------
-        # process old dict
-        # -----------------------------------------
-        training_step_output = self.trainer.process_dict_result(training_step_output, train=True)
+        result = self.trainer.get_model()._results
 
-        training_step_output = AttributeDict(
-            batch_loss=training_step_output[0],
-            pbar_on_batch_end=training_step_output[1],
-            log_metrics=training_step_output[2],
-            callback_metrics=training_step_output[3],
-            hiddens=training_step_output[4],
-        )
-        # if the user decides to finally reduce things in epoch_end, save raw output without graphs
-        if isinstance(training_step_output_for_epoch_end, torch.Tensor):
-            training_step_output_for_epoch_end = training_step_output_for_epoch_end.detach()
-        else:
-            training_step_output_for_epoch_end = recursive_detach(training_step_output_for_epoch_end)
+        loss = None
+        hiddens = None
+
+        # handle dict return
+        if isinstance(training_step_output, dict):
+            loss = training_step_output.pop("loss", None)
+            hiddens = training_step_output.pop("hiddens", None)
+            result["extra"] = training_step_output
+
+        # handle scalar return
+        elif isinstance(training_step_output, torch.Tensor):
+            loss = training_step_output
+            result["extra"] = {}
+
+        # map to results under the hood
+        result.minimize = loss
+        result.hiddens = hiddens
+
+        # track batch for manual reduction with result
+        result.track_batch_size(len(split_batch))
+
+        # track metrics without grads for epoch reduction
+        training_step_output_for_epoch_end = copy(result)
+        training_step_output_for_epoch_end.detach()
+        if self.trainer.move_metrics_to_cpu:
+            training_step_output_for_epoch_end.cpu()
+
+        # what flows back into the system
+        training_step_output = result
 
         return training_step_output_for_epoch_end, training_step_output
 
