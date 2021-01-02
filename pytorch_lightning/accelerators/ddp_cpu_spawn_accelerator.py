@@ -35,10 +35,6 @@ from pytorch_lightning.utilities.distributed import (
     sync_ddp_if_available,
 )
 
-if HYDRA_AVAILABLE:
-    from hydra.core.hydra_config import HydraConfig
-    from hydra.utils import get_original_cwd, to_absolute_path
-
 
 class DDPCPUSpawnAccelerator(Accelerator):
 

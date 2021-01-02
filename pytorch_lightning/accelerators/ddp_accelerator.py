@@ -41,7 +41,14 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from pytorch_lightning.utilities.seed import seed_everything
 
 if HYDRA_AVAILABLE:
-    from hydra.core.hydra_config import HydraConfig
+    try:
+        from hydra.core.hydra_config import HydraConfig
+    except:
+        class HydraConfig:
+            @staticmethod
+            def initialized():
+                return True
+
     from hydra.utils import get_original_cwd, to_absolute_path
 
 

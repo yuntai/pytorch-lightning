@@ -19,10 +19,6 @@ from pytorch_lightning.cluster_environments import ClusterEnvironment
 from pytorch_lightning.plugins.ddp_plugin import DDPPlugin
 from pytorch_lightning.utilities import HYDRA_AVAILABLE
 
-if HYDRA_AVAILABLE:
-    from hydra.core.hydra_config import HydraConfig
-    from hydra.utils import get_original_cwd, to_absolute_path
-
 
 class DDPCPUHPCAccelerator(DDPHPCAccelerator):
 
