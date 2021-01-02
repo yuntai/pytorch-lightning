@@ -427,9 +427,6 @@ class LoggerConnector:
         # [optimizer_idx][training_step_idx][tbptt_index]
         opt_idx_outputs = epoch_output[0]
 
-        # ------------------
-        # NEW 1.0.0 PATH
-        # ------------------
         # lightning module hook
         self.training_epoch_end(model, epoch_output, num_optimizers)
 
