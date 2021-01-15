@@ -97,7 +97,11 @@ def run_model_test(trainer_options, model, on_gpu: bool = True, version=None,
 
 
 def run_prediction(trained_model, dataloader, dp=False, min_acc=0.25):
-    if isinstance(trained_model, BoringModel):
+    ref_model = trained_model
+    if dp:
+        ref_model = trained_model.module
+
+    if isinstance(ref_model, BoringModel):
         return _boring_model_run_prediction(trained_model, dataloader, dp, min_acc)
     else:
         return _eval_model_template_run_prediction(trained_model, dataloader, dp, min_acc)
