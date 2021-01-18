@@ -420,7 +420,7 @@ class LightningModule(
         """
         if getattr(self, "trainer", None) is not None:
             dl_idx = self._current_dataloader_idx or 0
-            self.trainer.predictions.cache(
+            self.trainer.predictions.append(
                 predictions,
                 dl_idx,
                 self.trainer.evaluation_loop.batch_indices,
