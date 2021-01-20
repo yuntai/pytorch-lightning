@@ -558,11 +558,9 @@ class ModelCheckpoint(Callback):
                 ckpt_name_metrics, trainer.current_epoch, trainer.global_step
             )
 
-        accelerator_backend = trainer.accelerator_backend
-
-        if accelerator_backend is not None and accelerator_backend.rpc_enabled:
+        if self._use_rpc_plugin_save(trainer):
             # RPCPlugin manages saving all model states
-            accelerator_backend.ddp_plugin.rpc_save_model(self._save_model, last_filepath, trainer, pl_module)
+            trainer.accelerator_backend.ddp_plugin.rpc_save_model(self._save_model, last_filepath, trainer, pl_module)
         else:
             self._save_model(last_filepath, trainer, pl_module)
         if (
@@ -576,6 +574,10 @@ class ModelCheckpoint(Callback):
 
         if self.monitor is None:
             self.best_model_path = self.last_model_path
+
+    def _use_rpc_plugin_save(self, trainer):
+        accelerator_backend = trainer.accelerator_backend
+        return accelerator_backend is not None and accelerator_backend.rpc_enabled
 
     def _save_top_k_checkpoints(self, trainer, pl_module, metrics):
         current = metrics.get(self.monitor)
@@ -641,7 +643,11 @@ class ModelCheckpoint(Callback):
                 f"Epoch {epoch:d}, global step {step:d}: {self.monitor} reached {current:0.5f}"
                 f' (best {self.best_model_score:0.5f}), saving model to "{filepath}" as top {k}'
             )
-        self._save_model(filepath, trainer, pl_module)
+        if self._use_rpc_plugin_save(trainer):
+            # RPCPlugin manages saving all model states
+            trainer.accelerator_backend.ddp_plugin.rpc_save_model(self._save_model, filepath, trainer, pl_module)
+        else:
+            self._save_model(filepath, trainer, pl_module)
 
         if del_filepath is not None and filepath != del_filepath:
             self._del_model(del_filepath)
