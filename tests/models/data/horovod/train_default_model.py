@@ -61,8 +61,8 @@ def run_test_from_config(trainer_options):
     # Horovod should be initialized following training. If not, this will raise an exception.
     assert hvd.size() == 2
 
-    if trainer.global_rank > 0:
-        return
+    #if trainer.global_rank > 0:
+    #    return
 
     # test model loading
     pretrained_model = EvalModelTemplate.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
