@@ -551,6 +551,8 @@ class ModelCheckpoint(Callback):
         epoch = metrics.get("epoch")
         step = metrics.get("step")
 
+        print("CURRENT METRIC: ", current, trainer.current_epoch, trainer.global_step)
+
         if self.check_monitor_top_k(current):
             self._update_best_and_save(current, epoch, step, trainer, pl_module, metrics)
         elif self.verbose:
