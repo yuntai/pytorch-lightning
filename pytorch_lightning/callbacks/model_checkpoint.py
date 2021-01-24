@@ -634,13 +634,13 @@ class ModelCheckpoint(Callback):
         exists = self._fs.exists(filepath)
         print("--------------------------------------------------------------------"
               "\n"
+              "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch, trainer.accelerator_backend,
+              "\n-----------------------------------------------------------------")
+        if trainer.accelerator_backend is not None:
+            exists = trainer.accelerator_backend.broadcast(exists)
+
+        print("AFTER BROADCAST-----------------------------------------------------"
+              "\n"
               "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch,
               "\n-----------------------------------------------------------------")
-        # if trainer.accelerator_backend is not None:
-        #     exists = trainer.accelerator_backend.broadcast(exists)
-        #
-        # print("--------------------------------------------------------------------"
-        #       "\n"
-        #       "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch,
-        #       "\n-----------------------------------------------------------------")
         return exists
