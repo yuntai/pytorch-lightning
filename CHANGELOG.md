@@ -50,7 +50,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - Added `IoU` class interface ([#4704](https://github.com/PyTorchLightning/pytorch-lightning/pull/4704))
 
-- Support to tie weights after moving model to TPU via `on_post_move_to_device` hook
+
+- Support to tie weights after moving model to TPU via `on_post_move_to_device` hook ([#5441](https://github.com/PyTorchLightning/pytorch-lightning/pull/5441))
+
 
 - Added missing val/test hooks in `LightningModule` ([#5467](https://github.com/PyTorchLightning/pytorch-lightning/pull/5467))
 

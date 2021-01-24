@@ -212,10 +212,10 @@ throws a warning message.
 
 Example:
 
-.. code-block:: python
+.. testcode::
 
-    from pytorch_lightning.core.lightning import LightningModule
     from torch import nn
+    from pytorch_lightning.core.lightning import LightningModule
     from pytorch_lightning.trainer.trainer import Trainer
 
 
