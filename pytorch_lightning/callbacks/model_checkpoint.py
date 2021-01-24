@@ -635,5 +635,8 @@ class ModelCheckpoint(Callback):
         if trainer.accelerator_backend is not None:
             exists = trainer.accelerator_backend.broadcast(exists)
 
-        print("FILE", filepath, "exists", exists, "epoch", trainer.current_epoch)
+        print("--------------------------------------------------------------------"
+              "\n"
+              "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch,
+              "\n-----------------------------------------------------------------")
         return exists
