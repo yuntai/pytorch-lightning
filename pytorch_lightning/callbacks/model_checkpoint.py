@@ -636,6 +636,8 @@ class ModelCheckpoint(Callback):
               "\n"
               "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch, trainer.accelerator_backend,
               "\n-----------------------------------------------------------------")
+        trainer.accelerator_backend.barrier()
+        print("AFTER BARRIER")
         if trainer.accelerator_backend is not None:
             exists = trainer.accelerator_backend.broadcast(exists)
 
