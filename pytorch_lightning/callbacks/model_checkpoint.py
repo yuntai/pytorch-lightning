@@ -632,17 +632,8 @@ class ModelCheckpoint(Callback):
         the internal state to diverge between ranks.
         """
         exists = self._fs.exists(filepath)
-        print("--------------------------------------------------------------------"
-              "\n"
-              "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch, trainer.accelerator_backend,
-              "\n-----------------------------------------------------------------")
-        trainer.accelerator_backend.barrier()
-        print("AFTER BARRIER")
-        if trainer.accelerator_backend is not None:
-            exists = trainer.accelerator_backend.broadcast(exists)
 
-        print("AFTER BROADCAST-----------------------------------------------------"
-              "\n"
-              "FILE", filepath, "exists", exists, "epoch", trainer.current_epoch,
-              "\n-----------------------------------------------------------------")
+        if trainer.accelerator_backend is not None:
+            trainer.accelerator_backend.barrier()
+            exists = trainer.accelerator_backend.broadcast(exists)
         return exists
