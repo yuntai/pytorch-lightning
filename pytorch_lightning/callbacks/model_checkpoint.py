@@ -509,8 +509,11 @@ class ModelCheckpoint(Callback):
 
     def _save_last_checkpoint(self, trainer, pl_module, ckpt_name_metrics):
         should_save_last = self.monitor is None or self.save_last
+        print("SAVE LAST")
         if not should_save_last:
             return
+
+        print("SAVE LAST 2")
 
         # when user ALSO asked for the 'last.ckpt' change the name
         if self.save_last:
