@@ -24,7 +24,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.trainer.states import TrainerState
 from pytorch_lightning.utilities import _APEX_AVAILABLE
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
-from tests.base import BoringModel
+from tests.base import BoringModel, EvalModelTemplate
 
 
 @pytest.mark.skip(reason='dp + amp not supported currently')  # TODO
@@ -189,16 +189,13 @@ def test_amp_without_apex(tmpdir):
 @pytest.mark.skipif(not _APEX_AVAILABLE, reason="test requires apex")
 def test_amp_with_apex(tmpdir):
     """Check calling apex scaling in training."""
-    class CustomModel(BoringModel):
+    class CustomModel(EvalModelTemplate):
         def configure_optimizers(self):
             optimizer1 = optim.Adam(self.parameters(), lr=0.01)
             optimizer2 = optim.SGD(self.parameters(), lr=0.01)
             lr_scheduler1 = optim.lr_scheduler.StepLR(optimizer1, 1, gamma=0.1)
             lr_scheduler2 = optim.lr_scheduler.StepLR(optimizer2, 1, gamma=0.1)
             return [optimizer1, optimizer2], [lr_scheduler1, lr_scheduler2]
-
-        def training_step(self, batch, batch_idx, optimizer_idx):
-            return super().training_step(batch, batch_idx)
 
     model = CustomModel()
 
@@ -212,7 +209,7 @@ def test_amp_with_apex(tmpdir):
     assert str(trainer.amp_backend) == "AMPType.APEX"
     trainer.fit(model)
     assert trainer.state == TrainerState.FINISHED, f"Training failed with {trainer.state}"
-    assert trainer.dev_debugger.count_events('AMP') == 10
+    assert trainer.dev_debugger.count_events('AMP') == 20
 
     assert isinstance(trainer.lr_schedulers[0]['scheduler'].optimizer, optim.Adam)
     assert isinstance(trainer.lr_schedulers[1]['scheduler'].optimizer, optim.SGD)
