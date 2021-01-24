@@ -189,7 +189,7 @@ class ModelCheckpoint(Callback):
         """
         checkpoints can be saved at the end of the val loop
         """
-        print("ENTERING VALIDATAION END ")
+        print("ENTERING VALIDATAION END ", trainer.current_epoch)
         self.save_checkpoint(trainer, pl_module)
 
     def on_save_checkpoint(self, trainer, pl_module) -> Dict[str, Any]:
@@ -634,4 +634,6 @@ class ModelCheckpoint(Callback):
         exists = self._fs.exists(filepath)
         if trainer.accelerator_backend is not None:
             exists = trainer.accelerator_backend.broadcast(exists)
+
+        print("FILE", filepath, "exists", exists, "epoch", trainer.current_epoch)
         return exists
