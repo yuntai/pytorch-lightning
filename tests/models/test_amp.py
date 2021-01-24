@@ -16,6 +16,7 @@ from unittest import mock
 
 import pytest
 import torch
+from torch import optim
 
 import tests.base.develop_pipelines as tpipes
 import tests.base.develop_utils as tutils
@@ -188,8 +189,18 @@ def test_amp_without_apex(tmpdir):
 @pytest.mark.skipif(not _APEX_AVAILABLE, reason="test requires apex")
 def test_amp_with_apex(tmpdir):
     """Check calling apex scaling in training."""
+    class CustomModel(BoringModel):
+        def configure_optimizers(self):
+            optimizer1 = optim.Adam(self.parameters(), lr=0.01)
+            optimizer2 = optim.SGD(self.parameters(), lr=0.01)
+            lr_scheduler1 = optim.lr_scheduler.StepLR(optimizer1, 1, gamma=0.1)
+            lr_scheduler2 = optim.lr_scheduler.StepLR(optimizer2, 1, gamma=0.1)
+            return [optimizer1, optimizer2], [lr_scheduler1, lr_scheduler2]
 
-    model = BoringModel()
+        def training_step(self, batch, batch_idx, optimizer_idx):
+            return super().training_step(batch, batch_idx)
+
+    model = CustomModel()
 
     trainer = Trainer(
         default_root_dir=tmpdir,
@@ -202,3 +213,6 @@ def test_amp_with_apex(tmpdir):
     trainer.fit(model)
     assert trainer.state == TrainerState.FINISHED, f"Training failed with {trainer.state}"
     assert trainer.dev_debugger.count_events('AMP') == 10
+
+    assert isinstance(trainer.lr_schedulers[0]['scheduler'].optimizer, optim.Adam)
+    assert isinstance(trainer.lr_schedulers[1]['scheduler'].optimizer, optim.SGD)
