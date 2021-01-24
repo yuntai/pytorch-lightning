@@ -189,6 +189,8 @@ def test_amp_without_apex(tmpdir):
 @pytest.mark.skipif(not _APEX_AVAILABLE, reason="test requires apex")
 def test_amp_with_apex(tmpdir):
     """Check calling apex scaling in training."""
+
+    # TODO: switch to BoringModel after fixing #5642
     class CustomModel(EvalModelTemplate):
         def configure_optimizers(self):
             optimizer1 = optim.Adam(self.parameters(), lr=0.01)
