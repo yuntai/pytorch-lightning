@@ -189,6 +189,7 @@ class ModelCheckpoint(Callback):
         """
         checkpoints can be saved at the end of the val loop
         """
+        print("ENTERING VALIDATAION END ")
         self.save_checkpoint(trainer, pl_module)
 
     def on_save_checkpoint(self, trainer, pl_module) -> Dict[str, Any]:
