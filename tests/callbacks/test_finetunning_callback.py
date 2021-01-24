@@ -13,10 +13,11 @@
 # limitations under the License.
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
 
 from pytorch_lightning import seed_everything, Trainer
 from pytorch_lightning.callbacks import BackboneLambdaFinetuningCallback
-from tests.base import BoringModel
+from tests.base import BoringModel, RandomDataset
 
 
 def test_finetunning_callback(tmpdir):
@@ -38,6 +39,9 @@ def test_finetunning_callback(tmpdir):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.7)
             return [optimizer], [lr_scheduler]
+
+        def train_dataloader(self):
+            return DataLoader(RandomDataset(32, 64), batch_size=2)
 
     class TestCallback(BackboneLambdaFinetuningCallback):
 
