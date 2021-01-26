@@ -53,3 +53,4 @@ _RPC_AVAILABLE = platform.system() != 'Windows' and _module_available('torch.dis
 _GROUP_AVAILABLE = platform.system() != 'Windows' and _module_available('torch.distributed.group')
 _FAIRSCALE_PIPE_AVAILABLE = _FAIRSCALE_AVAILABLE and LooseVersion(torch.__version__) >= LooseVersion("1.6.0")
 _BOLTS_AVAILABLE = _module_available('pl_bolts')
+_TORCH_GREATER_EQUAL_1_7_0 = _FAIRSCALE_AVAILABLE and LooseVersion(torch.__version__) >= LooseVersion("1.7.0")

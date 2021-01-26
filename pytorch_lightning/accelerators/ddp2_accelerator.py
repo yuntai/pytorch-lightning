@@ -211,6 +211,7 @@ class DDP2Accelerator(Accelerator):
             self, model: LightningModule, device_ids: List[int]
     ) -> DistributedDataParallel:
         model = self.ddp_plugin.configure_ddp(model, device_ids)
+        self.ddp_plugin.configure_ddp_comm_hook(model, self.trainer, self.is_single_process_single_device)
         return model
 
     def configure_sync_batchnorm(self, model: LightningModule) -> LightningModule:
@@ -266,3 +267,7 @@ class DDP2Accelerator(Accelerator):
     @property
     def require_distributed_sampler(self):
         return True
+
+    @property
+    def is_single_process_single_device(self):
+        return False

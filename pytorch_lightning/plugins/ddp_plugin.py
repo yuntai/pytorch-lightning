@@ -22,8 +22,9 @@ from torch.optim import Optimizer
 from pytorch_lightning import _logger as log
 from pytorch_lightning.core.lightning import LightningModule
 from pytorch_lightning.overrides.data_parallel import LightningDistributedModule, prepare_for_backward
+from pytorch_lightning.plugins.ddp_comm_hooks import initialize_ddp_comm_hooks
 from pytorch_lightning.plugins.plugin import LightningPlugin
-from pytorch_lightning.utilities import DeviceType
+from pytorch_lightning.utilities import _TORCH_GREATER_EQUAL_1_7_0, DeviceType
 
 
 class DDPPlugin(LightningPlugin):
@@ -46,6 +47,22 @@ class DDPPlugin(LightningPlugin):
 
     def __init__(self, **kwargs):
         self._ddp_kwargs: Dict[str, Any] = kwargs
+        self._ddp_comm_hook_type = self._ddp_kwargs.pop("DDPCommHookType", None)
+
+    def configure_ddp_comm_hook(self, model: DistributedDataParallel, trainer, is_single_process_single_device:bool) -> None:
+        """
+        This function configure ddp_coom_hook
+        # https://github.com/pytorch/pytorch/blob/e6779d4357ae94cc9f9fedb83a87eb6126016769/torch/nn/parallel/distributed.py#L1035
+        .. warning ::
+            DDP communication hook does not support single-process multiple-device mode.
+            Gradbucket tensors should consist of only a single tensor.
+        Args:
+            model: DistributedDataParallel model
+            trainer: Lightning Trainer
+            is_single_process_single_device: ddp_coom_hook doesn't work in SPMD mode.
+        """
+        if isinstance(model, DistributedDataParallel) and is_single_process_single_device and _TORCH_GREATER_EQUAL_1_7_0:
+            initialize_ddp_comm_hooks(model, trainer)
 
     def configure_ddp(
             self, model: LightningModule, device_ids: List[int]
@@ -81,6 +98,7 @@ class DDPPlugin(LightningPlugin):
         self._ddp_kwargs["find_unused_parameters"] = self._ddp_kwargs.get(
             "find_unused_parameters", True
         )
+
         model = DistributedDataParallel(
             module=LightningDistributedModule(model),
             device_ids=device_ids,
