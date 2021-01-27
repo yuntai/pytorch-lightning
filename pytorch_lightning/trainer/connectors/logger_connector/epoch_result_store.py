@@ -17,28 +17,8 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 
 from pytorch_lightning.core.step_result import Result
+from pytorch_lightning.trainer.states import RunningStage
 from pytorch_lightning.utilities import DistributedType, LightningEnum
-
-
-class LoggerStages(LightningEnum):
-    """ Train/validation/test phase in each training step.
-
-    >>> # you can math the type with string
-    >>> LoggerStages.TRAIN == 'train'
-    True
-    """
-    TRAIN = "train"
-    VAL = "validation"
-    TEST = "test"
-
-    @staticmethod
-    def determine_stage(stage_or_testing: Union[str, bool]) -> 'LoggerStages':
-        if isinstance(stage_or_testing, str) and stage_or_testing in list(LoggerStages):
-            return LoggerStages(stage_or_testing)
-        if isinstance(stage_or_testing, (bool, int)):
-            # stage_or_testing is trainer.testing
-            return LoggerStages.TEST if bool(stage_or_testing) else LoggerStages.VAL
-        raise RuntimeError(f"Invalid stage {stage_or_testing} of type {type(stage_or_testing)} given")
 
 
 class ResultStoreType(LightningEnum):
@@ -276,7 +256,7 @@ class EpochResultStore:
 
     def __init__(self, trainer, stage):
         self.trainer = trainer
-        self._stage = stage
+        self._stage = RunningStage(stage)
         self.reset()
 
     def __getitem__(self, key: str) -> Any:
@@ -371,7 +351,6 @@ class EpochResultStore:
         callback_metrics = {}
         batch_pbar_metrics = {}
         batch_log_metrics = {}
-        is_train = self._stage in LoggerStages.TRAIN.value
 
         if not self._has_batch_loop_finished:
             # get pbar
@@ -379,7 +358,7 @@ class EpochResultStore:
             logger_connector.add_progress_bar_metrics(batch_pbar_metrics)
             batch_log_metrics = self.get_latest_batch_log_metrics()
 
-            if is_train:
+            if self._stage == RunningStage.TRAINING:
                 # Only log and add to callback epoch step during evaluation, test.
                 logger_connector._logged_metrics.update(batch_log_metrics)
                 callback_metrics.update(batch_pbar_metrics)
@@ -401,7 +380,7 @@ class EpochResultStore:
             callback_metrics.update(epoch_log_metrics)
             callback_metrics.update(forked_metrics)
 
-        if not is_train and self.trainer.testing:
+        if self._stage != RunningStage.TRAINING and self.trainer.testing:
             logger_connector.evaluation_callback_metrics.update(callback_metrics)
 
         # update callback_metrics
