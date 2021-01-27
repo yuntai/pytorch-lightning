@@ -38,7 +38,7 @@ class LoggerConnector:
         self._logged_metrics = MetricsHolder()
         self._progress_bar_metrics = MetricsHolder()
         self.eval_loop_results = []
-        self._cached_results = {stage: EpochResultStore(trainer, stage) for stage in RunningStage}
+        self._cached_results = {stage.value: EpochResultStore(trainer, stage) for stage in RunningStage}
         self._callback_hook_validator = CallbackHookNameValidator()
         self._current_stage = None
 
@@ -76,7 +76,7 @@ class LoggerConnector:
 
     @property
     def cached_results(self) -> Union[EpochResultStore, None]:
-        return self._cached_results.get(self._current_stage)    # type: ignore
+        return self._cached_results.get(self._current_stage.value)    # type: ignore
 
     def get_metrics(self, key: str) -> Dict:
         metrics_holder = getattr(self, f"_{key}", None)
